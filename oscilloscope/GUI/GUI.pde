@@ -10,7 +10,7 @@
  * measurement cursors, data acquisition shortcuts, and ohmmeter were made by
  * Ruiheng S.
  * 
- * 08/16/2020
+ * 08/31/2020
  */
 
 import processing.serial.*;
@@ -61,7 +61,7 @@ int chanstat[] = {1, 0, 0, 0, 0, 0};
 int nextchan[] = {0, 0, 0, 0, 0, 0};
 // color of channel icons
 color[] chan_color = {
-  color(230, 25, 75),   // red
+  color(230, 25, 75), // red
   color(245, 130, 48), // orange
   color(255, 225, 25), // yellow
   color(210, 245, 60), // lime
@@ -75,7 +75,15 @@ int y_tb = y_ch + 8 * h_ch;
 int w_tb = w_ch;
 int h_tb = h_ch;
 int[] tbms = {2, 5, 10, 20, 50, 100}; // ms/div options 
-int[] ADCPS = {32, 64, 128, 128, 128, 128}; // prescale factor
+int[] ADCPS = {32, 64, 128, 128, 128, 128}; 
+/**< The ADC clock prescale factor. This detmines how fast the each analog to 
+ digital conversion will take. The maximum clock frequency of the arduino 
+ is 16 mega hertz. So a prescaling factor of 32 means a ADC frequency of 
+ 16 MHz/32. Every digital to analog conversion takes 13 clock cycles, so
+ the sampling rate at 2 ms/div is 16 Mhz/32/13, which is around 19 samples 
+ per second. 
+ */
+
 int[] skipsamp = {1, 1, 1, 2, 5, 10};
 int ntbval = tbms.length;
 int tbval = 0;
@@ -127,22 +135,22 @@ int h_pb = h_ch;
 int pls_period[] = {16, 40, 80, 160, 400, 800, 1600, 4000, 8000, 16000, 40000, 10000, 20000, 50000, 12500, 25000, 62500};
 int pls_prescale[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8, 8, 64, 64, 64};
 int pls_len[][] = {
-  {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-  {1, 2, 4, 6, 8, 12, 16, 20, 24, 28, 32, 34, 36, 38, 39},
-  {1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 76, 78, 79},
-  {1, 2, 4, 8, 16, 32, 48, 80, 112, 128, 144, 152, 156, 158, 159},
-  {1, 2, 4, 8, 20, 40, 80, 200, 320, 360, 380, 392, 396, 398, 399},
-  {2, 4, 8, 16, 40, 80, 160, 400, 640, 720, 760, 784, 792, 796, 798},
-  {4, 8, 16, 40, 80, 160, 320, 800, 1280, 1440, 1520, 1568, 1584, 1592, 1596},
-  {10, 20, 40, 80, 200, 400, 800, 2000, 3200, 3600, 3800, 3920, 3960, 3980, 3990},
-  {20, 40, 80, 160, 400, 800, 1600, 4000, 6400, 7200, 7600, 7840, 7920, 7960, 7980},
-  {40, 80, 160, 400, 800, 1600, 3200, 8000, 12800, 14400, 15200, 15680, 15840, 15920, 15960},
-  {100, 200, 400, 800, 2000, 4000, 8000, 20000, 32000, 36000, 38000, 39200, 39600, 39800, 39900},
-  {25, 50, 100, 200, 500, 1000, 2000, 5000, 8000, 9000, 9500, 9800, 9900, 9950, 9975},
-  {50, 100, 200, 500, 1000, 2000, 5000, 10000, 16000, 18000, 19000, 19600, 19800, 19900, 19950},
-  {125, 250, 500, 1000, 2500, 5000, 10000, 25000, 40000, 45000, 48000, 49000, 49500, 49750, 49875},
-  {25, 50, 125, 250, 500, 1250, 2500, 6250, 10000, 11250, 12000, 12250, 12375, 12450, 12475},
-  {50, 100, 250, 500, 1000, 2500, 5000, 12500, 20000, 22500, 24000, 24500, 24750, 24900, 24950},
+  {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, 
+  {1, 2, 4, 6, 8, 12, 16, 20, 24, 28, 32, 34, 36, 38, 39}, 
+  {1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 76, 78, 79}, 
+  {1, 2, 4, 8, 16, 32, 48, 80, 112, 128, 144, 152, 156, 158, 159}, 
+  {1, 2, 4, 8, 20, 40, 80, 200, 320, 360, 380, 392, 396, 398, 399}, 
+  {2, 4, 8, 16, 40, 80, 160, 400, 640, 720, 760, 784, 792, 796, 798}, 
+  {4, 8, 16, 40, 80, 160, 320, 800, 1280, 1440, 1520, 1568, 1584, 1592, 1596}, 
+  {10, 20, 40, 80, 200, 400, 800, 2000, 3200, 3600, 3800, 3920, 3960, 3980, 3990}, 
+  {20, 40, 80, 160, 400, 800, 1600, 4000, 6400, 7200, 7600, 7840, 7920, 7960, 7980}, 
+  {40, 80, 160, 400, 800, 1600, 3200, 8000, 12800, 14400, 15200, 15680, 15840, 15920, 15960}, 
+  {100, 200, 400, 800, 2000, 4000, 8000, 20000, 32000, 36000, 38000, 39200, 39600, 39800, 39900}, 
+  {25, 50, 100, 200, 500, 1000, 2000, 5000, 8000, 9000, 9500, 9800, 9900, 9950, 9975}, 
+  {50, 100, 200, 500, 1000, 2000, 5000, 10000, 16000, 18000, 19000, 19600, 19800, 19900, 19950}, 
+  {125, 250, 500, 1000, 2500, 5000, 10000, 25000, 40000, 45000, 48000, 49000, 49500, 49750, 49875}, 
+  {25, 50, 125, 250, 500, 1250, 2500, 6250, 10000, 11250, 12000, 12250, 12375, 12450, 12475}, 
+  {50, 100, 250, 500, 1000, 2500, 5000, 12500, 20000, 22500, 24000, 24500, 24750, 24900, 24950}, 
   {125, 250, 625, 1250, 2500, 6250, 12500, 31250, 50000, 56250, 60000, 61250, 61875, 62250, 62375}};
 int pls_np = pls_period.length;
 int pls_nl = pls_len[0].length;
@@ -173,59 +181,59 @@ void setup()
   pins = loadImage("./data/pins.png");
   f = loadFont("muktinarrow-16.vlw");
   f2 = createFont("DSEG7Modern-Regular.ttf", 80);
-  
+
   // an array of PinButton objects
-  PinButton[] pinButtons = {new PinButton(x_scrn+19, y_scrn+70, 10, 10),
-                new PinButton(x_scrn+19+30, y_scrn+70, 10, 10),
-                new PinButton(x_scrn+19+60, y_scrn+70, 10, 10),
-                new PinButton(x_scrn+19+90, y_scrn+70, 10, 10),
-                new PinButton(x_scrn+19+120, y_scrn+70, 10, 10),
-                new PinButton(x_scrn+19+150, y_scrn+70, 10, 10),
+  PinButton[] pinButtons = {new PinButton(x_scrn+19, y_scrn+70, 10, 10), 
+    new PinButton(x_scrn+19+30, y_scrn+70, 10, 10), 
+    new PinButton(x_scrn+19+60, y_scrn+70, 10, 10), 
+    new PinButton(x_scrn+19+90, y_scrn+70, 10, 10), 
+    new PinButton(x_scrn+19+120, y_scrn+70, 10, 10), 
+    new PinButton(x_scrn+19+150, y_scrn+70, 10, 10), 
   };
   BC = new ButtonCollection(pinButtons);
 
   // defines a clickable button 
   Scope = new RectangularButton(x_scrn, 
-                    y_ycb + (nxcb + 2) * h_ch, 
-                  w_ycb, 
-                  h_ycb, 
-                  "Scope");
+    y_ycb + (nxcb + 2) * h_ch, 
+    w_ycb, 
+    h_ycb, 
+    "Scope");
 
   HScrollbar xc1 = new HScrollbar(x_scrn - 6, 
-                    y_scrn - 16, 
-                  w_scrn + 12, 
-                  12, 
-                  150, 
-                  1, 
-                  color(255, 250, 200), 
-                  color(255, 200, 200));
+    y_scrn - 16, 
+    w_scrn + 12, 
+    12, 
+    150, 
+    1, 
+    color(255, 250, 200), 
+    color(255, 200, 200));
 
   HScrollbar xc2 = new HScrollbar(x_scrn - 6, 
-                  y_scrn - 16 - 12, 
-                  w_scrn + 12, 
-                  12, 
-                  100, 
-                  1, 
-                  color(255, 250, 200), 
-                  color(255, 200, 200));
-  
+    y_scrn - 16 - 12, 
+    w_scrn + 12, 
+    12, 
+    100, 
+    1, 
+    color(255, 250, 200), 
+    color(255, 200, 200));
+
   VScrollbar yc1 = new VScrollbar(x_scrn - 22, 
-                  y_scrn - 6, 
-                  12, 
-                  h_scrn + 12, 
-                  150, 
-                  1, 
-                  color(170, 255, 195), 
-                  color(170, 200, 195));
+    y_scrn - 6, 
+    12, 
+    h_scrn + 12, 
+    150, 
+    1, 
+    color(170, 255, 195), 
+    color(170, 200, 195));
 
   VScrollbar yc2 = new VScrollbar(x_scrn - 22 - 12, 
-                  y_scrn - 6, 
-                  12, 
-                  h_scrn + 12, 
-                  100, 
-                  1, 
-                  color(170, 255, 195), 
-                  color(170, 200, 195));
+    y_scrn - 6, 
+    12, 
+    h_scrn + 12, 
+    100, 
+    1, 
+    color(170, 255, 195), 
+    color(170, 200, 195));
 
   XCursorBar XC = new XCursorBar(xc1, xc2); // HScrollbar container
   YCursorBar YC = new YCursorBar(yc1, yc2); // VScrollbar container
@@ -234,14 +242,14 @@ void setup()
   int state = 1; 
   boolean end = false;
   String[] options = {"Try again", "Auto connect", "Exit"};
-  
+
   // if device were found
-  if (Serial.list().length == 0){
+  if (Serial.list().length == 0) {
     new UiBooster().showErrorDialog("No serial device found. Remember to connect your Arduino.\nThe program will now exit.", "ERROR");
     exit();
     return;
   }
-  
+
   // iterates until end == false
   while (end == false)
   {
@@ -250,8 +258,8 @@ void setup()
     case 1:
       // creates a selection pop up listing all serial ports available 
       String selection = new UiBooster().showSelectionDialog(
-        "Choose the serial port that connects the\nArduino to this computer:",
-        "Connect",
+        "Choose the serial port that connects the\nArduino to this computer:", 
+        "Connect", 
         Serial.list());
       try
       {
@@ -270,23 +278,20 @@ void setup()
 
     case 2:
       String next = new UiBooster().showSelectionDialog(
-        "What would you like to do?",
-        "Next Step",
+        "What would you like to do?", 
+        "Next Step", 
         options);
 
       if (next == options[0])
       {
         state = 1;
-      }
-      else if (next == options[1])
+      } else if (next == options[1])
       {
         state = 3;
-      }
-      else if (next == options[2])
+      } else if (next == options[2])
       {
         state = 4;
-      }
-      else {
+      } else {
         state = 4;
       }
       break;
@@ -314,7 +319,7 @@ void setup()
       catch (AssertionError e)
       {
         new UiBooster().showErrorDialog("Auto connect failed.", 
-                        "ERROR");
+          "ERROR");
         state = 2;
       }
       break;
@@ -339,59 +344,55 @@ void keyPressed()
 {
   // what code is ran depends the program state variable
   switch (STATE) {
-    case 1:
-  
-      int k = keyCode;
-      // if space bar was pressed
-      if (k == ' ')
+  case 1:
+
+    int k = keyCode;
+    // if space bar was pressed
+    if (k == ' ')
+    {
+      PImage snapshot = get(); // gets a screenshot
+      String name = "PHYS159_" + hour() + ";" 
+        + minute() + ";" + second();
+      snapshot.save(name + ".png");
+
+      printtraces(name);
+
+      new UiBooster().showInfoDialog("Screenshot and channel data has been saved.");
+
+      background(0);
+      redraw_all();
+    }
+
+    int last_selected_cursor = XY.x_or_y; 
+    int c1_or_c2 = XY.one_or_two;
+
+    if (last_selected_cursor == 2)
+    {
+      if (k == UP | k == 'W')
       {
-        PImage snapshot = get(); // gets a screenshot
-        String name = "PHYS159_" + hour() + ";" 
-                + minute() + ";" + second();
-        snapshot.save(name + ".png");
-
-        printtraces(name);
-
-        new UiBooster().showInfoDialog("Screenshot and channel data has been saved.");
-
-        background(0);
-        redraw_all();
-      }
-
-      int last_selected_cursor = XY.x_or_y; 
-      int c1_or_c2 = XY.one_or_two;
-
-      if (last_selected_cursor == 2)
+        XY.Y.move(c1_or_c2, true);
+      } else if (k == DOWN | k == 'S')
       {
-        if (k == UP | k == 'W')
-        {
-          XY.Y.move(c1_or_c2, true);
-        }
-        else if (k == DOWN | k == 'S')
-        {
-          XY.Y.move(c1_or_c2, false);
-        }
+        XY.Y.move(c1_or_c2, false);
       }
-      else
+    } else
+    {
+      if (k == LEFT | k == 'A')
       {
-        if (k == LEFT | k == 'A')
-        {
-          XY.X.move(c1_or_c2, true);
-        }
-        else if (k == RIGHT | k == 'D')
-        {
-          XY.X.move(c1_or_c2, false);
-        }
+        XY.X.move(c1_or_c2, true);
+      } else if (k == RIGHT | k == 'D')
+      {
+        XY.X.move(c1_or_c2, false);
       }
+    }
     break;
 
-    case 2:
+  case 2:
     break;
 
-    case 3:
+  case 3:
     break;
   }
-  
 }
 
 /**
@@ -825,6 +826,8 @@ void drawtraces()
         if (isamp >= nchan)
         {
           // stroke(255);
+          // circle(xprev, yprev, 5);
+          // circle(x,y, 5);
           line(xprev, yprev, x, y);
         }
         xprev = x;
@@ -840,7 +843,7 @@ void drawtraces()
  * Draws the trigger settings, V/div, ms/div, samploing rate, channel 
  * channel selection, and square wave settings bar 
  */
-void redraw_all(){
+void redraw_all() {
   drawtb(); // draws trigger settings bar
   drawvb(); // draws V/div bar
   drawts(); // draws ms/div bar
@@ -854,29 +857,29 @@ void redraw_all(){
  */
 void draw()
 {
-  switch (STATE){
-    case 1: // oscilloscope state
-      fill(0);
-      stroke(0);
-      rect(0, 0, w_scrn, y_scrn - 30);
-      rect(x_scrn, y_scrn + h_scrn, w_scrn, 10);
+  switch (STATE) {
+  case 1: // oscilloscope state
+    fill(0);
+    stroke(0);
+    rect(0, 0, w_scrn, y_scrn - 30);
+    rect(x_scrn, y_scrn + h_scrn, w_scrn, 10);
 
-      MyResult spacings = drawscrn();
-      if (trig_mode == 0 || doread)
-        getdata();
-      drawtraces();
+    MyResult spacings = drawscrn();
+    if (trig_mode == 0 || doread)
+      getdata();
+    drawtraces();
 
-      XY.update();
-      XY.display(spacings);
+    XY.update();
+    XY.display(spacings);
     break;
-    case 2: // ohmmeter set up state
-      STATE = 3; 
-      setUpOhmmeter();
+  case 2: // ohmmeter set up state
+    STATE = 3; 
+    setUpOhmmeter();
     break;
-    case 3: // ohmmeter state
-      configured = true;
-      background(0);
-      drawOhmmeter();
+  case 3: // ohmmeter state
+    configured = true;
+    background(0);
+    drawOhmmeter();
     break;
   }
 }
@@ -887,15 +890,15 @@ void draw()
  * @return average reading in [0, maxval]
  */
 double get_reading(int active_chan) {
-  
+
   int[] chanstat = {0, 0, 0, 0, 0, 0};
   chanstat[active_chan] = 1;
   int[] nextchan = {active_chan, 
-            active_chan, 
-            active_chan, 
-            active_chan, 
-            active_chan, 
-            active_chan};
+    active_chan, 
+    active_chan, 
+    active_chan, 
+    active_chan, 
+    active_chan};
 
   port.write(255);
   port.write(nsamp / 0x100);
@@ -954,22 +957,21 @@ double get_reading(int active_chan) {
  * @param voltage reading in [0, maxval]
  * @return resistance in Ohms
  */
-double get_resistance (double v_avg){
+double get_resistance (double v_avg) {
 
   return (ref_resistor*v_avg)/(maxval - v_avg);
-
 }
 
 /**
  * Draws the ohmmeter interface
  */
 void drawOhmmeter() {
-  
+
   image(pins, x_scrn, y_scrn, 200, 100);
-  if (Scope.update()){
+  if (Scope.update()) {
     fill(0);
     stroke(0);
-    rect(0,0,1100, 800);
+    rect(0, 0, 1100, 800);
     redraw_all();
     STATE = 1;
     return;
@@ -993,20 +995,16 @@ void drawOhmmeter() {
   String result;
   String unit = "Ohm";
 
-  if (resistance_reading < 10 || resistance_reading > 33000){
+  if (resistance_reading < 10 || resistance_reading > 33000) {
     result = "0L";
-  }
-  else if (resistance_reading < 100){
+  } else if (resistance_reading < 100) {
     result = nf(resistance_reading, 2, 2);
-  }
-  else if (resistance_reading < 1000){
+  } else if (resistance_reading < 1000) {
     result = nf(resistance_reading, 3, 1);
-  }
-  else if (resistance_reading < 10000){
+  } else if (resistance_reading < 10000) {
     result = nf(resistance_reading/1000.0, 1, 2);
     unit = "kOhm";
-  }
-  else {
+  } else {
     result = nf(resistance_reading/1000.0, 2, 1);
     unit = "kOhm";
   }
@@ -1019,46 +1017,44 @@ void drawOhmmeter() {
  * Sets up the ohmmeter. Records the reference resistance value in ohms entered
  * by the user
  */
-void setUpOhmmeter(){
+void setUpOhmmeter() {
   fill(0);
   stroke(0);
-  rect(0,0,1100, 800);
+  rect(0, 0, 1100, 800);
   new UiBooster().showInfoDialog("Let's set up your ohmmeter.");
   new UiBooster().showInfoDialog("Set up your breadboard according the following schematics.\nThe schematics show a connection to pin A0.\nBut feel free to choose any analog pin.");
 
-  while (true){
+  while (true) {
     new UiBooster().showPictures(
-      "Schematic",
+      "Schematic", 
       Arrays.asList(
-        new File("./data/ohmmeter1.png"),
-        new File("./data/ohmmeter2.png")
+      new File("./data/ohmmeter1.png"), 
+      new File("./data/ohmmeter2.png")
       )
-    );
+      );
     String selection = new UiBooster().showSelectionDialog(
-        "Have you built your circuit?",
-        "Complete?",
-        Arrays.asList("Yes", "Not Yet", "Return to Scope"));
-    if (selection ==  "Yes"){
+      "Have you built your circuit?", 
+      "Complete?", 
+      Arrays.asList("Yes", "Not Yet", "Return to Scope"));
+    if (selection ==  "Yes") {
       break;
-    }
-    else if (selection == "Return to Scope"){
+    } else if (selection == "Return to Scope") {
       STATE = 1; 
       return;
-    }
-    else {
+    } else {
       continue;
     }
   }
 
-  while (true){
+  while (true) {
     String r_val = new UiBooster().showTextInputDialog("Enter the resistance of the reference resistor: [Ohms]");
-    
-    try{
+
+    try {
       ref_resistor = float(r_val);
       assert !Float.isNaN(ref_resistor);
       break;
     } 
-    catch (AssertionError e){
+    catch (AssertionError e) {
       new UiBooster().showErrorDialog("Please enter a valid resistance value.", "ERROR");
     }
   }
@@ -1072,137 +1068,137 @@ void mousePressed()
 { 
 
   switch (STATE) {
-    case 1:
-      //nsamp bar
-      if (mouseX > x_ns && mouseX < x_ns + w_ns && mouseY > y_ns && mouseY < y_ns + nns * h_ns)
+  case 1:
+    //nsamp bar
+    if (mouseX > x_ns && mouseX < x_ns + w_ns && mouseY > y_ns && mouseY < y_ns + nns * h_ns)
+    {
+      ins = int((mouseY - y_ns) / h_ns);
+      nsamp = ns[ins];
+      if (trig_offset >= nsamp)
+        trig_offset = nsamp - 1;
+      drawns();
+      doread = true;
+    }
+
+    if (trig_mode == 0)
+    {
+      //vertical scale bar
+      if (mouseX > x_vb && mouseX < x_vb + w_vb && mouseY > y_vb && mouseY < y_vb + nVdiv * h_vb)
       {
-        ins = int((mouseY - y_ns) / h_ns);
-        nsamp = ns[ins];
-        if (trig_offset >= nsamp)
-          trig_offset = nsamp - 1;
-        drawns();
-        doread = true;
+        ivb = int((mouseY - y_vb) / h_vb);
+        drawvb();
       }
 
-      if (trig_mode == 0)
+      //timebar
+      if (mouseX > x_tb && mouseX < x_tb + w_tb && mouseY > y_tb && mouseY < y_tb + ntbval * h_tb)
       {
-        //vertical scale bar
-        if (mouseX > x_vb && mouseX < x_vb + w_vb && mouseY > y_vb && mouseY < y_vb + nVdiv * h_vb)
+        tbval = int((mouseY - y_tb) / h_tb);
+        drawtb();
+      }
+
+      //pulser bar - period/frequency selection
+      if (mouseX > x_pb && mouseX < x_scrn+w_scrn && mouseY > y_pb && mouseY < y_pb + 4 * h_pb)
+      {
+        if (mouseY < y_pb + 2 * h_pb)
+          pls_ip = constrain(int((mouseX - x_pb) / (w_pb / pls_np)), 0, pls_period.length - 1);
+        if (mouseY > y_pb + 2 * h_pb)
+          pls_il = constrain(int((mouseX - x_pb) / (w_pb / pls_nl)), 0, pls_len[0].length - 1);
+
+        drawpb();
+      }
+
+      //trigger level
+      if (mouseX > x_scrn - 10 && mouseX < x_scrn && mouseY > y_scrn && mouseY < y_scrn + h_scrn)
+      {
+        //trig_level=(mouseY-y_scrn)*255/h_scrn;
+        trig_level = (y_scrn + h_scrn - mouseY) * maxval / h_scrn;
+      }
+
+      //trigger offset
+      if (mouseX > x_scrn && mouseX < x_scrn + w_scrn && mouseY < y_scrn && mouseY > y_scrn - 10)
+      {
+        trig_offset = (int)((1.0 * mouseX - 1.0 * x_scrn) * (1.0 * nsamp) / (1.0 * w_scrn));
+      }
+
+      //channel and trigger selection
+      if (mouseX > x_ch && mouseX < x_ch + w_ch && mouseY > y_ch && mouseY < y_ch + maxnchan * h_ch)
+      {
+        int ichan = int((mouseY - y_ch) / h_ch);
+        int ipos = int(3 * (mouseX - x_ch) / w_ch);
+        if (ipos == 0)
         {
-          ivb = int((mouseY - y_vb) / h_vb);
-          drawvb();
+          if (chanstat[ichan] == 0)
+            chanstat[ichan] = 1;
+          else if (chanstat[ichan] >= 1 && nchan > 1)
+            chanstat[ichan] = 0;
         }
-
-        //timebar
-        if (mouseX > x_tb && mouseX < x_tb + w_tb && mouseY > y_tb && mouseY < y_tb + ntbval * h_tb)
+        if (ipos == 1 || ipos == 2)
         {
-          tbval = int((mouseY - y_tb) / h_tb);
-          drawtb();
-        }
-
-        //pulser bar - period/frequency selection
-        if (mouseX > x_pb && mouseX < x_scrn+w_scrn && mouseY > y_pb && mouseY < y_pb + 4 * h_pb)
-        {
-          if (mouseY < y_pb + 2 * h_pb)
-            pls_ip = constrain(int((mouseX - x_pb) / (w_pb / pls_np)), 0, pls_period.length - 1);
-          if (mouseY > y_pb + 2 * h_pb)
-            pls_il = constrain(int((mouseX - x_pb) / (w_pb / pls_nl)), 0, pls_len[0].length - 1);
-
-          drawpb();
-        }
-
-        //trigger level
-        if (mouseX > x_scrn - 10 && mouseX < x_scrn && mouseY > y_scrn && mouseY < y_scrn + h_scrn)
-        {
-          //trig_level=(mouseY-y_scrn)*255/h_scrn;
-          trig_level = (y_scrn + h_scrn - mouseY) * maxval / h_scrn;
-        }
-
-        //trigger offset
-        if (mouseX > x_scrn && mouseX < x_scrn + w_scrn && mouseY < y_scrn && mouseY > y_scrn - 10)
-        {
-          trig_offset = (int)((1.0 * mouseX - 1.0 * x_scrn) * (1.0 * nsamp) / (1.0 * w_scrn));
-        }
-
-        //channel and trigger selection
-        if (mouseX > x_ch && mouseX < x_ch + w_ch && mouseY > y_ch && mouseY < y_ch + maxnchan * h_ch)
-        {
-          int ichan = int((mouseY - y_ch) / h_ch);
-          int ipos = int(3 * (mouseX - x_ch) / w_ch);
-          if (ipos == 0)
+          if (chanstat[ichan] == ipos + 1)
+            chanstat[ichan] = 1;
+          else
           {
-            if (chanstat[ichan] == 0)
-              chanstat[ichan] = 1;
-            else if (chanstat[ichan] >= 1 && nchan > 1)
-              chanstat[ichan] = 0;
+            for (int i = 0; i < maxnchan; i++)
+              chanstat[i] = min(chanstat[i], 1);
+            chanstat[ichan] = ipos + 1;
           }
-          if (ipos == 1 || ipos == 2)
+        }
+
+        //calculate some handy numbers
+        fchan = 0;
+        for (int i = maxnchan - 1; i >= 0; i--)
+          if (chanstat[i] > 0)
+            fchan = i;
+        nchan = 0;
+        for (int i = 0; i < maxnchan; i++)
+          if (chanstat[i] > 0)
+            nchan++;
+        tchan = maxnchan;
+        for (int i = 0; i < maxnchan; i++)
+          if (chanstat[i] > 1)
+            tchan = i;
+        tmode = 0;
+        for (int i = 0; i < maxnchan; i++)
+          if (chanstat[i] > 1)
+            tmode = chanstat[i];
+
+        //build the nextchan array
+        for (int i = 0; i < maxnchan; i++)
+        {
+          for (int j = 1; j <= maxnchan; j++)
           {
-            if (chanstat[ichan] == ipos + 1)
-              chanstat[ichan] = 1;
-            else
+            int i2 = (i + j) % maxnchan;
+            if (chanstat[i2] > 0)
             {
-              for (int i = 0; i < maxnchan; i++)
-                chanstat[i] = min(chanstat[i], 1);
-              chanstat[ichan] = ipos + 1;
+              nextchan[i] = i2;
+              break;
             }
           }
-
-          //calculate some handy numbers
-          fchan = 0;
-          for (int i = maxnchan - 1; i >= 0; i--)
-            if (chanstat[i] > 0)
-              fchan = i;
-          nchan = 0;
-          for (int i = 0; i < maxnchan; i++)
-            if (chanstat[i] > 0)
-              nchan++;
-          tchan = maxnchan;
-          for (int i = 0; i < maxnchan; i++)
-            if (chanstat[i] > 1)
-              tchan = i;
-          tmode = 0;
-          for (int i = 0; i < maxnchan; i++)
-            if (chanstat[i] > 1)
-              tmode = chanstat[i];
-
-          //build the nextchan array
-          for (int i = 0; i < maxnchan; i++)
-          {
-            for (int j = 1; j <= maxnchan; j++)
-            {
-              int i2 = (i + j) % maxnchan;
-              if (chanstat[i2] > 0)
-              {
-                nextchan[i] = i2;
-                break;
-              }
-            }
-          }
-          drawch();
         }
+        drawch();
       }
-      //trigger mode
-      if (mouseX > x_ts && mouseX < x_ts + w_ts && mouseY > y_ts 
-        && mouseY < y_ts + h_ts)
-      {
-        trig_mode = 0;
-        drawts();
-      }
-      if (mouseX > x_ts && mouseX < x_ts + w_ts && mouseY > y_ts + h_ts 
-        && mouseY < y_ts + 2 * h_ts)
-      {
-        trig_mode = 1;
-        drawts();
-        doread = true;
-      }
+    }
+    //trigger mode
+    if (mouseX > x_ts && mouseX < x_ts + w_ts && mouseY > y_ts 
+      && mouseY < y_ts + h_ts)
+    {
+      trig_mode = 0;
+      drawts();
+    }
+    if (mouseX > x_ts && mouseX < x_ts + w_ts && mouseY > y_ts + h_ts 
+      && mouseY < y_ts + 2 * h_ts)
+    {
+      trig_mode = 1;
+      drawts();
+      doread = true;
+    }
 
     break;
-    case 2:
+  case 2:
 
     break;
-    case 3:
-    
+  case 3:
+
     break;
   }
 }
@@ -1217,29 +1213,35 @@ class CursorBars
 
   int x_or_y;
   int one_or_two;
-
+  
+  /**
+   * Class constructor
+   *
+   * @param XCursorBar object containing both time cursor bars
+   * @param YCursorBar object containing both voltage cursor bars
+   */
   CursorBars(XCursorBar X, YCursorBar Y)
   {
     this.X = X;
     this.Y = Y;
   }
 
+  /**
+   * Updates all of the cursor bars. 
+   */
   void update()
   {
     int sx = X.update();
     int sy = Y.update();
     if (sx == 0)
     {
-
       if (sy != 0)
       {
         one_or_two = sy;
         x_or_y = 2;
       }
-    }
-    else if (sy == 0)
+    } else if (sy == 0)
     {
-
       if (sx != 0)
       {
         one_or_two = sx;
@@ -1248,6 +1250,12 @@ class CursorBars
     }
   }
 
+  /**
+   * Displays all cursor bars
+   *
+   * @param a MyResult object containing both the difference in x and y
+   *  coordinates for each time and voltage position
+   */
   void display(MyResult spacings)
   {
     X.display(spacings.getFirst());
@@ -1264,24 +1272,37 @@ class XCursorBar
   private HScrollbar xc1;
   private HScrollbar xc2;
 
+  /**
+   * @param first HScrollbar object (time cursor bar)
+   * @param second HScrollbar object 
+   */
   XCursorBar(HScrollbar xc_1, HScrollbar xc_2)
   {
     xc1 = xc_1;
     xc2 = xc_2;
   }
 
+  /**
+   * For changing cursor position with each arrow key, or WASD key press.
+   * 
+   * @param moves the cursor position left a fixed increment if true, left if 
+   *  false 
+   */
   void move(int which_bar, boolean direction)
   {
     if (which_bar == 1)
     {
       xc1.move(direction);
-    }
-    else
+    } else
     {
       xc2.move(direction);
     }
   }
 
+  /**
+   * @return 1 if the first HScrollbar was selected, 2 if the second HScrollbar
+   *  was selected, and 0 if none were selected
+   */ 
   int update()
   {
     boolean s1 = xc1.update();
@@ -1290,27 +1311,40 @@ class XCursorBar
     if (s1)
     {
       return 1;
-    }
-    else if (s2)
+    } else if (s2)
     {
       return 2;
-    }
-    else
+    } else
     {
       return 0;
     }
   }
+
+  /**
+   * Displays the HScrollbar members and shows the new time readings
+   *
+   * @param the difference in x coordinate between cursors
+   */
   void display(float spacing)
   {
     xc1.display();
     xc2.display();
     drawxcb(spacing);
   }
+
+  /**
+   * @return the difference in x coordinate between the HScrollbar members 
+   */
   float displacement()
   {
     return xc1.x_pos() - xc2.x_pos();
   }
-  //draw the bar for the vertical scale
+  
+  /**
+   * Draws the box that shows the cursor time measurements. 
+   * 
+   * @param the difference in x coodinate value between two time divisions
+   */
   void drawxcb(float x_spacing)
   {
     fill(0);
@@ -1347,6 +1381,17 @@ class HScrollbar
   private color cursor_color;
   private color cursor_selected_color;
 
+  /**
+   * @param x coordinate of the upperleft corner of the bar
+   * @param y coordinate of the upperleft corner of the bar
+   * @param width of the bar
+   * @param height of the bar
+   * @param initial x coordinate of the cursor
+   * @param how fast the bar will follow your mouse. 1 means the bar will 
+   *  follow you mouse without any lag
+   * @param the color of the cursor when it is not selected
+   * @param the color of the cursor when it is selected
+   */
   HScrollbar(float xp, float yp, int sw, int sh, float sp, int l, color cc, color csc)
   {
     swidth = sw;
@@ -1364,28 +1409,36 @@ class HScrollbar
     cursor_selected_color = csc;
   }
 
+  /**
+   * For changing cursor position with each arrow key, or WASD key press.
+   * 
+   * @param moves the cursor position left a fixed increment if true, left if 
+   *  false 
+   */
   void move(boolean left_or_right)
   {
     if (left_or_right)
     {
       newspos -= 0.5;
       newspos = constrain(newspos, sposMin, sposMax);
-    }
-    else
+    } else
     {
       newspos += 0.5;
       newspos = constrain(newspos, sposMin, sposMax);
     }
   }
 
+  /**
+   * @return current x position of the bar
+   */
   float x_pos()
   {
     return spos;
   }
-  void lock()
-  {
-    locked = false;
-  }
+
+  /**
+   * @return true if the rectangular button is being pressed, false otherwise
+   */
   boolean get_mousePressed_over()
   {
     if (overEvent() && mousePressed)
@@ -1395,13 +1448,19 @@ class HScrollbar
 
     return false;
   }
+
+  /**
+   * Updates the cursor object by setting the position of the cursor to the new
+   * mouse position
+   *
+   * @return true if the cursor bar is being pressed, and false otherwise
+   */
   boolean update()
   {
     if (overEvent())
     {
       over = true;
-    }
-    else
+    } else
     {
       over = false;
     }
@@ -1425,31 +1484,47 @@ class HScrollbar
     if (locked)
     {
       return true;
-    }
+    } 
     else
     {
       return false;
     }
   }
 
+  /** 
+   * 
+   * @param a floating point value
+   * @param minimum permissible value
+   * @param maximum permissible value
+   * 
+   * @returns val if val in [minv, maxv]. minv if val is less than minv. maxv 
+   *  if val is greater than maxv
+   */
   float constrain(float val, float minv, float maxv)
   {
     return min(max(val, minv), maxv);
   }
 
+  /**
+   * @return true if the mouse is over the button, false otherwise
+   */
   boolean overEvent()
   {
     if (mouseX > xpos && mouseX < xpos + swidth &&
       mouseY > ypos && mouseY < ypos + sheight)
     {
       return true;
-    }
+    } 
     else
     {
       return false;
     }
   }
 
+  /**
+   * Displays the cursor bar. Color of the cursor changes depending on whether 
+   * it was selected
+   */
   void display()
   {
 
@@ -1461,8 +1536,7 @@ class HScrollbar
     if (over || locked)
     {
       fill(cursor_selected_color);
-    }
-    else
+    } else
     {
       fill(cursor_color);
     }
@@ -1481,24 +1555,39 @@ class YCursorBar
   private VScrollbar yc1;
   private VScrollbar yc2;
 
+  /**
+   * Class constructor
+   *
+   * @param first VScrollbar object (first voltage cursor)
+   * @param second VScrollbar object (second voltage cursor) 
+   */
   YCursorBar(VScrollbar yc_1, VScrollbar yc_2)
   {
     yc1 = yc_1;
     yc2 = yc_2;
   }
 
+  /**
+   * Used for moving the cursor bars using key presses
+   *
+   * @param integer representing the cursor bar
+   * @param true means moving upwards, false means move downwards 
+   */ 
   void move(int which_bar, boolean direction)
   {
     if (which_bar == 1)
     {
       yc1.move(direction);
-    }
-    else
+    } else
     {
       yc2.move(direction);
     }
   }
 
+  /**
+   * @return 1 if the first VScrollbar was selected, 2 if the second VScrollbar
+   *  was selected, and 0 if none were selected
+   */ 
   int update()
   {
     boolean s1 = yc1.update();
@@ -1507,25 +1596,38 @@ class YCursorBar
     if (s1)
     {
       return 1;
-    }
-    else if (s2)
+    } else if (s2)
     {
       return 2;
     }
     return 0;
   }
+
+  /**
+   * Displays the VScrollbar members and shows the new voltage readings
+   *
+   * @param the difference in y coordinate between cursors
+   */
   void display(float spacing)
   {
     yc1.display();
     yc2.display();
     drawycb(spacing);
   }
+
+  /**
+   * @return the difference in y coordinate between the VScrollbar members 
+   */
   float displacement()
   {
     return yc1.y_pos() - yc2.y_pos();
   }
 
-  //draw the bar for the vertical scale
+  /**
+   * Draws the box that shows the cursor voltage measurements. 
+   * 
+   * @param the difference in y value between two voltage divisions
+   */
   void drawycb(float y_spacing)
   {
     fill(0);
@@ -1545,7 +1647,7 @@ class YCursorBar
 }
 
 /**
- * A verticle sliding bar object
+ * A vertical sliding bar object
  */
 class VScrollbar
 {
@@ -1560,7 +1662,17 @@ class VScrollbar
   private color cursor_color;
   private color cursor_selected_color;
 
-  //xp, yp, 12, h_scrn, 1, color(255, 102, 102), 1
+  /**
+   * @param x coordinate of the upperleft corner of the bar
+   * @param y coordinate of the upperleft corner of the bar
+   * @param width of the bar
+   * @param height of the bar
+   * @param initial y coordinate of the cursor
+   * @param how fast the bar will follow your mouse. 1 means the bar will 
+   *  follow you mouse without any lag
+   * @param the color of the cursor when it is not selected
+   * @param the color of the cursor when it is selected
+   */
   VScrollbar(float xp, float yp, int sw, int sh, float sp, int l, color cc, color csc)
   {
     swidth = sw;
@@ -1578,11 +1690,17 @@ class VScrollbar
     cursor_selected_color = csc;
   }
 
+  /**
+   * @return current y position of the cursor
+   */
   float y_pos()
   {
     return spos;
   }
 
+  /**
+   * @return true if the rectangular button is being pressed, false otherwise
+   */
   boolean get_mousePressed_over()
   {
     if (overEvent() && mousePressed)
@@ -1593,27 +1711,37 @@ class VScrollbar
     return false;
   }
 
+  /**
+   * For changing cursor position with each arrow key, or WASD key press.
+   * 
+   * @param moves the cursor position up a fixed increment if true, down if 
+   *  false 
+   */
   void move(boolean up_or_down)
   {
     if (up_or_down)
     {
       newspos -= 0.5;
       newspos = constrain(newspos, sposMin, sposMax);
-    }
-    else
+    } else
     {
-      newspos += 0.5;
+      newspos += 0.5; // half a pixel length
       newspos = constrain(newspos, sposMin, sposMax);
     }
   }
 
+  /**
+   * Updates the cursor object by setting the position of the cursor to the new
+   * mouse position
+   *
+   * @return true if the cursor bar is being pressed, and false otherwise
+   */
   boolean update()
   {
     if (overEvent())
     {
       over = true;
-    }
-    else
+    } else
     {
       over = false;
     }
@@ -1637,31 +1765,46 @@ class VScrollbar
     if (locked)
     {
       return true;
-    }
+    } 
     else
     {
       return false;
     }
   }
 
+  /** 
+   * 
+   * @param a floating point value
+   * @param minimum permissible value
+   * @param maximum permissible value
+   * 
+   * @returns val if val in [minv, maxv]. minv if val is less than minv. maxv 
+   *  if val is greater than maxv
+   */
   float constrain(float val, float minv, float maxv)
   {
     return min(max(val, minv), maxv);
   }
 
+  /**
+   * @return true if the mouse is over the button, false otherwise
+   */
   boolean overEvent()
   {
     if (mouseX > xpos && mouseX < xpos + swidth &&
       mouseY > ypos && mouseY < ypos + sheight)
     {
       return true;
-    }
-    else
+    } else
     {
       return false;
     }
   }
 
+  /**
+   * Displays the cursor bar. Color of the cursor changes depending on whether 
+   * it was selected
+   */
   void display()
   {
     noStroke();
@@ -1670,7 +1813,7 @@ class VScrollbar
     if (over || locked)
     {
       fill(cursor_selected_color);
-    }
+    } 
     else
     {
       fill(cursor_color);
@@ -1686,20 +1829,30 @@ class VScrollbar
  */
 class MyResult
 {
-private final float first;
-private final float second;
+  private final float first;
+  private final float second;
 
-public MyResult(float first, float second)
+  /**
+   * @param first floating point result to store
+   * @param second floating point result to store
+   */
+  public MyResult(float first, float second)
   {
     this.first = first;
     this.second = second;
   }
 
+  /**
+   * @return first floating point result
+   */
   public float getFirst()
   {
     return first;
   }
-
+  
+  /**
+   * @return second floating point result
+   */
   public float getSecond()
   {
     return second;
@@ -1714,31 +1867,38 @@ class ButtonCollection
 {
   private PinButton[] button_list;
   private int active = 0;
-  ButtonCollection(PinButton[] button_list){
+  ButtonCollection(PinButton[] button_list) {
     this.button_list = button_list;
   }
 
+  /**
+   * @param index of the active button.
+   */
   int active_button() {
     return active;
   }
-  
-  int update(){
-    for (int i = 0; i < button_list.length; i+= 1){
-      if (button_list[i].get_mousePressed_over()){
+
+  /**
+   * Draws all buttons associated with the object
+   */
+  int update() {
+    for (int i = 0; i < button_list.length; i+= 1) {
+      if (button_list[i].get_mousePressed_over()) {
         active = i;
         break;
       }
     }
-    return active;  
+    return active;
   }
-
-  void display_all(){
-    for (int i = 0; i < button_list.length; i+= 1){
-      if (i == active){
+  /**
+   * Draws all buttons associated with the object
+   */
+  void display_all() {
+    for (int i = 0; i < button_list.length; i+= 1) {
+      if (i == active) {
         button_list[i].display(true);
-      }
-      else {
-        button_list[i].display(false);  
+      } else {
+        button_list[i].display(false);
       }
     }
   }
@@ -1750,19 +1910,28 @@ class ButtonCollection
  */
 class PinButton extends RectangularButton
 {
-  // class constructor
+  /**
+   * Class constructor
+   *
+   * @param x coordinate of the button (upperleft corner)
+   * @param y coordinate of the button (upperleft corner)
+   * @param width of the button
+   * @param height of the button
+   */
   PinButton(float xp, float yp, int sw, int sh)
   {
     super(xp, yp, sw, sh, "");
   }
 
-  void display(boolean selected){
+  /**
+   * @param turns the button red if selected is true. Remains black otherwise
+   */
+  void display(boolean selected) {
     stroke(255);
     strokeWeight(2);
-    if (selected){
+    if (selected) {
       fill(color(230, 25, 75));
-    }
-    else {
+    } else {
       fill(0);
     }
     rect(super.xpos, super.ypos, super.swidth, super.sheight);
@@ -1776,13 +1945,21 @@ class PinButton extends RectangularButton
  */
 class RectangularButton
 {  
-  private int swidth, 
-        sheight; 
+  private int swidth, sheight; 
   private float xpos, ypos;
   private boolean over; 
   private boolean locked; 
   private String label;
 
+  /**
+   * Class constructor
+   *
+   * @param x coordinate of the button (upperleft corner)
+   * @param y coordinate of the button (upperleft corner)
+   * @param width of the button
+   * @param height of the button
+   * @param text displayed on the button
+   */
   RectangularButton(float xp, float yp, int sw, int sh, String lb)
   {
     swidth = sw;
@@ -1794,10 +1971,7 @@ class RectangularButton
 
   /**
    *  Draws a square button at the specified location on the canvas
-     * 
-   *  Requires: None
-   *  Modifies: None
-     *
+   *
    *  @return None
    */
   void display()
@@ -1805,8 +1979,7 @@ class RectangularButton
     if (over || locked)
     {
       fill(128);
-    }
-    else
+    } else
     {
       fill(0);
     }
@@ -1820,27 +1993,25 @@ class RectangularButton
     text(label, xpos + swidth / 2, ypos + sheight - 2);
   }
 
-  /*
-    Determines whether the mouse pointer is over the button
-
-    Requires: None
-    Modifies: None  
-
-    Returns: true if the mouse is over the button, false otherwise
-  */
+  /**
+   * @return true if the mouse is over the button, false otherwise
+   */
   boolean overEvent()
   {
     if (mouseX > xpos && mouseX < xpos + swidth &&
       mouseY > ypos && mouseY < ypos + sheight)
     {
       return true;
-    }
+    } 
     else
     {
       return false;
     }
   }
 
+  /**
+   * @return true if the rectangular button is being pressed, false otherwise
+   */
   boolean get_mousePressed_over()
   {
     if (overEvent() && mousePressed)
@@ -1861,8 +2032,7 @@ class RectangularButton
     if (overEvent())
     {
       over = true;
-    }
-    else
+    } else
     {
       over = false;
     }
@@ -1877,8 +2047,7 @@ class RectangularButton
     if (locked)
     {
       return true;
-    }
-    else
+    } else
     {
       return false;
     }
