@@ -25,7 +25,6 @@ void setup() {
   ADCSRA=B11110100; // prescale 16 -> 13 mus per sample, auto trigger
   ADCSRB=B00000000; // freerun
   ADMUX =ADMUXBASE; // Vcc ref, left-align, ch0
-  DIDR0 = 0×01;
 }
 
 //byte a=0;
